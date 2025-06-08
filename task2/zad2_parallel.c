@@ -64,7 +64,7 @@ int main(int argc, char *argv[]) {
         array_size = atoi(array_size_str);
 
         if (array_size <= 0) {
-            fprintf(stderr, "Процесс 0: Некорректное значение ARRAY_SIZE. Должно быть положительным целым числом.\n");
+            fprintf(stderr, "Некорректное значение ARRAY_SIZE.\n");
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
@@ -99,7 +99,7 @@ int main(int argc, char *argv[]) {
     if (rank == 0) {
       sorted_arr = (int *)malloc(array_size * sizeof(int));
       if (sorted_arr == NULL) {
-        fprintf(stderr, "Процесс 0: Не удалось выделить память для результирующего массива.\n");
+        fprintf(stderr, "Не удалось выделить память для результирующего массива.\n");
         MPI_Abort(MPI_COMM_WORLD, 1);
       }
     }
