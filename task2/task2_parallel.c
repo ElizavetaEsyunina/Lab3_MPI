@@ -25,7 +25,9 @@ int main(int argc, char *argv[]) {
     int rank, size;
     int array_size;
     int *arr = NULL;
-    double start_time, end_time, time_taken;
+    int num_iterations;
+    double start_time, end_time, time_taken, total_time = 0.0, average_time;
+    char *endptr;
 
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -45,6 +47,17 @@ int main(int argc, char *argv[]) {
             MPI_Abort(MPI_COMM_WORLD, 1);
         }
 
+        char *num_iterations_str = getenv("NUM_ITERATIONS");
+        if (num_iterations_str == NULL) {
+            fprintf(stderr, "Переменная NUM_ITERATIONS не установлена.\n");
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+        num_iterations = strtol(num_iterations_str, &endptr, 10);
+        if (*endptr != '\0' || num_iterations <= 0) {
+            fprintf(stderr, "Некорректное значение NUM_ITERATIONS: %s\n", num_iterations_str);
+            MPI_Abort(MPI_COMM_WORLD, 1);
+        }
+
         arr = (int *)malloc(array_size * sizeof(int));
         if (arr == NULL) {
             fprintf(stderr, "Не удалось выделить память под массив.\n");
@@ -52,14 +65,20 @@ int main(int argc, char *argv[]) {
         }
 
         srand(time(NULL));
-        fillArrayWithRandomNumbers(arr, array_size);
 
-        start_time = MPI_Wtime();
-        bubbleSort(arr, array_size);
-        end_time = MPI_Wtime();
-        time_taken = end_time - start_time;
+        for (int i = 0; i < num_iterations; i++) {
+            fillArrayWithRandomNumbers(arr, array_size);
+            start_time = MPI_Wtime();
+            bubbleSort(arr, array_size);
+            end_time = MPI_Wtime();
+            time_taken = end_time - start_time;
+            total_time += time_taken;
+            printf("Итерация %d: \nВремя, затраченное на сортировку: %f секунд\n", i + 1, time_taken);
+        }
 
-        printf("Время, затраченное на сортировку: %f секунд\n", time_taken);
+        average_time = total_time / num_iterations;
+
+        printf("Среднее время, затраченное на сортировку: %f секунд\n", average_time);
         printf("Количество процессов: %d\n", size);
 
         free(arr);
